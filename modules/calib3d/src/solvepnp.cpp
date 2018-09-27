@@ -57,7 +57,7 @@ bool solvePnP( InputArray _opoints, InputArray _ipoints,
                InputArray _cameraMatrix, InputArray _distCoeffs,
                OutputArray _rvec, OutputArray _tvec, bool useExtrinsicGuess, int flags )
 {
-    CV_INSTRUMENT_REGION()
+    CV_INSTRUMENT_REGION();
 
     Mat opoints = _opoints.getMat(), ipoints = _ipoints.getMat();
     int npoints = std::max(opoints.checkVector(3, CV_32F), opoints.checkVector(3, CV_64F));
@@ -134,9 +134,9 @@ bool solvePnP( InputArray _opoints, InputArray _ipoints,
     }
     else if (flags == SOLVEPNP_ITERATIVE)
     {
-        CvMat c_objectPoints = opoints, c_imagePoints = ipoints;
-        CvMat c_cameraMatrix = cameraMatrix, c_distCoeffs = distCoeffs;
-        CvMat c_rvec = rvec, c_tvec = tvec;
+        CvMat c_objectPoints = cvMat(opoints), c_imagePoints = cvMat(ipoints);
+        CvMat c_cameraMatrix = cvMat(cameraMatrix), c_distCoeffs = cvMat(distCoeffs);
+        CvMat c_rvec = cvMat(rvec), c_tvec = cvMat(tvec);
         cvFindExtrinsicCameraParams2(&c_objectPoints, &c_imagePoints, &c_cameraMatrix,
                                      (c_distCoeffs.rows && c_distCoeffs.cols) ? &c_distCoeffs : 0,
                                      &c_rvec, &c_tvec, useExtrinsicGuess );
@@ -169,7 +169,7 @@ bool solvePnP( InputArray _opoints, InputArray _ipoints,
     return result;
 }
 
-class PnPRansacCallback : public PointSetRegistrator::Callback
+class PnPRansacCallback CV_FINAL : public PointSetRegistrator::Callback
 {
 
 public:
@@ -181,7 +181,7 @@ public:
 
     /* Pre: True */
     /* Post: compute _model with given points and return number of found models */
-    int runKernel( InputArray _m1, InputArray _m2, OutputArray _model ) const
+    int runKernel( InputArray _m1, InputArray _m2, OutputArray _model ) const CV_OVERRIDE
     {
         Mat opoints = _m1.getMat(), ipoints = _m2.getMat();
 
@@ -197,7 +197,7 @@ public:
 
     /* Pre: True */
     /* Post: fill _err with projection errors */
-    void computeError( InputArray _m1, InputArray _m2, InputArray _model, OutputArray _err ) const
+    void computeError( InputArray _m1, InputArray _m2, InputArray _model, OutputArray _err ) const CV_OVERRIDE
     {
 
         Mat opoints = _m1.getMat(), ipoints = _m2.getMat(), model = _model.getMat();
@@ -236,7 +236,7 @@ bool solvePnPRansac(InputArray _opoints, InputArray _ipoints,
                         int iterationsCount, float reprojectionError, double confidence,
                         OutputArray _inliers, int flags)
 {
-    CV_INSTRUMENT_REGION()
+    CV_INSTRUMENT_REGION();
 
     Mat opoints0 = _opoints.getMat(), ipoints0 = _ipoints.getMat();
     Mat opoints, ipoints;
@@ -379,7 +379,7 @@ bool solvePnPRansac(InputArray _opoints, InputArray _ipoints,
 int solveP3P( InputArray _opoints, InputArray _ipoints,
               InputArray _cameraMatrix, InputArray _distCoeffs,
               OutputArrayOfArrays _rvecs, OutputArrayOfArrays _tvecs, int flags) {
-    CV_INSTRUMENT_REGION()
+    CV_INSTRUMENT_REGION();
 
     Mat opoints = _opoints.getMat(), ipoints = _ipoints.getMat();
     int npoints = std::max(opoints.checkVector(3, CV_32F), opoints.checkVector(3, CV_64F));

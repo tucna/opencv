@@ -206,8 +206,12 @@ cvOpenFileStorage( const char* query, CvMemStorage* dststorage, int flags, const
         // and factor=4 for YAML ( as we use 4 bytes for non ASCII characters (e.g. \xAB))
         int buf_size = CV_FS_MAX_LEN*(fs->fmt == CV_STORAGE_FORMAT_XML ? 6 : 4) + 1024;
 
-        if( append )
+        if (append)
+        {
             fseek( fs->file, 0, SEEK_END );
+            if (ftell(fs->file) == 0)
+                append = false;
+        }
 
         fs->write_stack = cvCreateSeq( 0, sizeof(CvSeq), fs->fmt == CV_STORAGE_FORMAT_XML ?
                 sizeof(CvXMLStackRecord) : sizeof(int), fs->memstorage );
@@ -301,7 +305,7 @@ cvOpenFileStorage( const char* query, CvMemStorage* dststorage, int flags, const
         }
         else if( fs->fmt == CV_STORAGE_FORMAT_YAML )
         {
-            if( !append )
+            if( !append)
                 icvPuts( fs, "%YAML:1.0\n---\n" );
             else
                 icvPuts( fs, "...\n---\n" );
@@ -974,7 +978,7 @@ cvWriteRawData( CvFileStorage* fs, const void* _data, int len, const char* dt )
                     ptr = icvDoubleToString( buf, *(double*)data );
                     data += sizeof(double);
                     break;
-                case CV_USRTYPE1: /* reference */
+                case CV_SEQ_ELTYPE_PTR/*CV_USRTYPE1*/: /* reference */
                     ptr = icv_itoa( (int)*(size_t*)data, buf, 10 );
                     data += sizeof(size_t);
                     break;
@@ -1059,7 +1063,7 @@ cvReadRawDataSlice( const CvFileStorage* fs, CvSeqReader* reader,
         CV_Error( CV_StsNullPtr, "Null pointer to reader or destination array" );
 
     if( !reader->seq && len != 1 )
-        CV_Error( CV_StsBadSize, "The readed sequence is a scalar, thus len must be 1" );
+        CV_Error( CV_StsBadSize, "The read sequence is a scalar, thus len must be 1" );
 
     fmt_pair_count = icvDecodeFormat( dt, fmt_pairs, CV_FS_MAX_FMT_PAIRS );
     size_t step = ::icvCalcStructSize(dt, 0);
@@ -1114,7 +1118,7 @@ cvReadRawDataSlice( const CvFileStorage* fs, CvSeqReader* reader,
                         *(double*)data = (double)ival;
                         data += sizeof(double);
                         break;
-                    case CV_USRTYPE1: /* reference */
+                    case CV_SEQ_ELTYPE_PTR/*CV_USRTYPE1*/: /* reference */
                         *(size_t*)data = ival;
                         data += sizeof(size_t);
                         break;
@@ -1163,7 +1167,7 @@ cvReadRawDataSlice( const CvFileStorage* fs, CvSeqReader* reader,
                         *(double*)data = fval;
                         data += sizeof(double);
                         break;
-                    case CV_USRTYPE1: /* reference */
+                    case CV_SEQ_ELTYPE_PTR/*CV_USRTYPE1*/: /* reference */
                         ival = cvRound(fval);
                         *(size_t*)data = ival;
                         data += sizeof(size_t);
